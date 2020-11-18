@@ -1,6 +1,12 @@
-# MTGNN
-This is a PyTorch implementation of the paper: [Connecting the Dots: Multivariate Time Series Forecasting with Graph Neural Networks](https://arxiv.org/abs/2005.11650). 
+# Multivariate Time Series Learning for Financial Data Using Graph Neural Network
 
+This is code implementation of the project "Multivariate Time Series Learning for Financial Data Using Graph Neural Network" for KDD course.
+
+Implementation based on https://github.com/nnzhan/MTGNN 
+a PyTorch implementation of the paper: [Connecting the Dots: Multivariate Time Series Forecasting with Graph Neural Networks](https://arxiv.org/abs/2005.11650). 
+
+
+----------- the following is not changed yet
 ## Requirements
 The model is implemented using Python3 with dependencies specified in requirements.txt
 ## Data Preparation
