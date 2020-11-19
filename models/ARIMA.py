@@ -29,7 +29,6 @@ pred = np.array(predictions)
 error = mean_squared_error(test, predictions)
 print('Test MSE: %.3f' % error)
 
-
 # plot
 color = sns.color_palette()
 plt.plot(test)
