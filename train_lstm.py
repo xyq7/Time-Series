@@ -61,7 +61,7 @@ y_test = torch.from_numpy(y_test).type(torch.Tensor)
 
 
 n_steps = look_back-1
-batch_size = 1606
+batch_size = 6324
 #n_iters = 3000
 num_epochs = 100 #n_iters / (len(train_X) / batch_size)
 #num_epochs = int(num_epochs)
