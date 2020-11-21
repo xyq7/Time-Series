@@ -18,3 +18,10 @@ class Dataset(torch.utils.data.Dataset):
         data = self.data[idx: idx + self.T]
         label = 1 if self.data[idx + self.T:idx + self.T + 1]['close'].item() >= 0 else 0
         return np.array(data), int(label)
+
+
+# # example
+# dataset = Dataset()
+# dataloader = torch.utils.data.DataLoader(dataset)
+# for data in dataloader:
+#     print(data)

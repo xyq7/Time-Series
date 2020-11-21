@@ -109,6 +109,7 @@ mmdet/version.py
 .DS_Store
 
 # custom
+res/
 *.pkl.json
 *.log.json
 work_dirs/
