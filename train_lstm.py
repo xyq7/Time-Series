@@ -1,71 +1,66 @@
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-
-from tqdm import tqdm
-
 import torch
 import torch.nn as nn
 import torch.utils.data
 
-import os
-import wandb
-wandb.init(project="finance")
-
+import numpy as np
 
 from data.dataset import Dataset
 from models.vanilla_lstm import VanillaLSTM
 
-scaler = MinMaxScaler(feature_range=(-1, 1))
+from param import get_parser
+from tqdm import tqdm
+import os
+import wandb
+
+
+def test(model)
+    return acc
 
 
 def main():
-    # Build model
-    input_dim = 6
-    hidden_dim = 256
-    num_layers = 2
-    output_dim = 1
+    parser = get_parser()
+    args = parser.parse_args()
+    print(args)
 
-    T = 10
-    batch_size = 1
-    num_epochs = 30
+    # name
+    name = 'lstm-{}-{}-{}-{}'.format(args.hidden_dim, args.num_layers, args.T, args.lr)
+    wandb.init(name=name, project="finance", entity="liuyuezhang", config=args)
 
     # data
-    dataset = Dataset(dir='./data/processed/single-stock/train.pkl', T=T)
-    dataloader = torch.utils.data.DataLoader(dataset)
+    dataset = Dataset(dir='./data/processed/single-stock/train.pkl', T=args.T)
+    dataloader = torch.utils.data.DataLoader(dataset, shuffle=True)
 
     # model
-    model = VanillaLSTM(input_dim=input_dim, hidden_dim=hidden_dim,
-                        output_dim=output_dim, num_layers=num_layers).to("cuda")
-    wandb.watch(model)
+    model = VanillaLSTM(input_dim=args.input_dim, hidden_dim=args.hidden_dim,
+                        output_dim=args.output_dim, num_layers=args.num_layers).to("cuda")
+    # wandb.watch(model)
 
-    loss_fn = torch.nn.MSELoss()
+    loss_fn = torch.nn.CrossEntropyLoss()
+    optimiser = torch.optim.Adam(model.parameters(), lr=args.lr)
 
-    optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
-
-    for e in range(num_epochs):
+    for e in range(args.num_epochs):
         for data in tqdm(dataloader):
+            toss = np.random.randint(0, 2)
             x_train, y_train = data
-            x_train = (x_train.float()).to("cuda")
-            y_train = (y_train.float()).to("cuda")
+            if y_train == toss:
+                x_train = (x_train.float()).to("cuda")
+                y_train = (y_train.long()).to("cuda")
 
-            # forward
-            y_train_pred = model(x_train)
-            loss = loss_fn(y_train_pred, y_train)
-            # backward
-            optimiser.zero_grad()
-            loss.backward()
-            optimiser.step()
+                # forward
+                y_train_pred = model(x_train)
+                loss = loss_fn(y_train_pred, y_train)
+                # backward
+                optimiser.zero_grad()
+                loss.backward()
+                optimiser.step()
 
-            # log
-            wandb.log({'loss': loss.item()})
+                wandb.log({"loss": loss.item()})
 
         # save
-        if e % 10 == 9:
-            torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
+        print("model saved.")
+        torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
+        test()
 
 
 if __name__ == '__main__':
     main()
-
-
-
