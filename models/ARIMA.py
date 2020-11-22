@@ -1,36 +1,28 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-from statsmodels.tsa.arima_model import ARIMA
-from sklearn.metrics import mean_squared_error
+import warnings
+warnings.filterwarnings('ignore', 'statsmodels.tsa.arima_model.ARMA',
+                        FutureWarning)
+warnings.filterwarnings('ignore', 'statsmodels.tsa.arima_model.ARIMA',
+                        FutureWarning)
+
 import numpy as np
+from statsmodels.tsa.arima_model import ARIMA
 
-data = pd.read_csv("dataset.csv")
-print("importing finished.")
 
-quantity = data.values
+@MODEL_ZONE.register
+class ARIMA():
+    def __init__(self, order):
+        self.order = order
 
-size = int(len(quantity) * 0.66)
-train, test = quantity[0:size], quantity[size:len(quantity)]
-history = [x for x in train]
-predictions = list()
-for t in range(len(test)):
-    model = ARIMA(history, order=(2 ,2 ,0))
-    model_fit = model.fit(disp=0)
-    output = model_fit.forecast()
-    yhat = output[0]
-    predictions.append(yhat[0])
-    obs = test[t]
-    history.append(obs)
-    print('predicted=%f, expected=%f' % (yhat, obs))
+    def forward(self, x):
+        ts = x
+        ts_logtransformed = np.log(ts)
 
-pred = np.array(predictions)
+        ARIMA_model = ARIMA(ts_logtransformed, order=self.order)
+        out = ARIMA_model.fit(trend='nc', disp=-1)
+        return out
 
-error = mean_squared_error(test, predictions)
-print('Test MSE: %.3f' % error)
 
-# plot
-color = sns.color_palette()
-plt.plot(test)
-plt.plot(predictions, color='red')
-plt.show()
+if __name__ == "__main__":
+    model = ARIMA((8, 1, 18)).cuda()
+    data = data['Close']
+    out = model(data)
