@@ -9,7 +9,7 @@ warnings.filterwarnings('ignore', 'statsmodels.tsa.arima_model.ARIMA',
 
 
 @MODEL_ZONE.register
-class ARIMA():
+class Arima():
     def __init__(self, order):
         self.order = order
 
@@ -23,6 +23,6 @@ class ARIMA():
 
 
 if __name__ == "__main__":
-    model = ARIMA((8, 1, 18)).cuda()
+    model = Arima((8, 1, 18)).cuda()
     data = data['Close']
-    out = model(data)
+    results_ARIMA = model(data)
