@@ -1,11 +1,11 @@
+import numpy as np
+from statsmodels.tsa.arima_model import ARIMA
+
 import warnings
 warnings.filterwarnings('ignore', 'statsmodels.tsa.arima_model.ARMA',
                         FutureWarning)
 warnings.filterwarnings('ignore', 'statsmodels.tsa.arima_model.ARIMA',
                         FutureWarning)
-
-import numpy as np
-from statsmodels.tsa.arima_model import ARIMA
 
 
 @MODEL_ZONE.register
