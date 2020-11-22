@@ -16,8 +16,9 @@ class Dataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         data = self.data[idx: idx + self.T]
-        label = 1 if self.data[idx + self.T:idx + self.T + 1]['close'].item() >= 0 else 0
-        return np.array(data), int(label)
+        # label = 1 if self.data[idx + self.T:idx + self.T + 1]['close'].item() >= 0 else 0
+        label = self.data[idx + self.T:idx + self.T + 1]
+        return np.array(data), np.array(label)
 
 
 # # example
