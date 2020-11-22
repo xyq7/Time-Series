@@ -1,65 +1,74 @@
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-
-from tqdm import tqdm
-
 import torch
 import torch.nn as nn
 import torch.utils.data
 
-import math
-from sklearn.metrics import mean_squared_error
+import numpy as np
+import pandas as pd
 
 from data.dataset import Dataset
 from models.vanilla_lstm import VanillaLSTM
 
+from param import get_parser
+from tqdm import tqdm
+import os
+import wandb
 
-scaler = MinMaxScaler(feature_range=(-1, 1))
 
-
-def main():
-    # Build model
-    input_dim = 6
-    hidden_dim = 128
-    num_layers = 1
-    output_dim = 2
-
-    T = 10
-
-    # data
-    dataset = Dataset(dir='./data/processed/single-stock/test.pkl', T=T)
-    dataloader = torch.utils.data.DataLoader(dataset)
-
-    # model
-    model = VanillaLSTM(input_dim=input_dim, hidden_dim=hidden_dim,
-                        output_dim=output_dim, num_layers=num_layers).to("cuda")
-    model.load_state_dict(torch.load('./res/model1.pt'))
-    model.eval()
-
-    # make predictions
+def test(model, test_loader, scale):
     y_tests = []
     y_preds = []
-    for data in tqdm(dataloader):
+    for data in tqdm(test_loader):
         x_test, y_test = data
         x_test = (x_test.float()).to("cuda")
         y_test = (y_test.float()).to("cuda")
 
         # forward
-        output = model(x_test)
-        y_pred = np.argmax(output.data.cpu().numpy())
+        y_pred = model(x_test)
 
-        y_tests.append(y_test.data.cpu().numpy())
-        y_preds.append(y_pred)
+        y_preds.append(y_pred.data.squeeze().cpu().numpy())
+        y_tests.append(y_test.data.squeeze().cpu().numpy())
 
-    # # invert predictions
-    # y_tests = scaler.inverse_transform(y_tests)
-    # y_preds = scaler.inverse_transform(y_preds)
-    #
-    # # calculate root mean squared error
-    # testScore = math.sqrt(mean_squared_error(y_tests[:, 0], y_preds[:, 0]))
-    # print('Test Score: %.2f RMSE' % (testScore))
+    y_preds = np.array(y_preds)
+    y_tests = np.array(y_tests)
 
-    np.savez("./res/test_res", y_tests=np.array(y_tests), y_preds=np.array(y_preds))
+    # mse
+    mse = np.sqrt(np.mean((y_preds * scale - y_tests * scale) ** 2))
+    # corr (scale invariant)
+    corr = np.mean((y_preds - np.mean(y_preds, 0))*(y_tests - np.mean(y_tests, 0)), 0)
+    corr /= (np.std(y_preds, 0) * np.std(y_tests, 0))
+    corr = np.mean(corr)
+    # log
+    print(mse, corr)
+    # wandb.log({"mse": mse, "corr": corr})
+    # np.savez(os.path.join(wandb.run.dir, 'data'), y_tests=y_tests*scale, y_preds=y_preds*scale)
+    np.savez('./data', y_tests=y_tests*scale, y_preds=y_preds*scale)
+    return mse, corr
+
+
+def main():
+    parser = get_parser()
+    args = parser.parse_args()
+    print(args)
+
+    # name
+    name = '{}-{}_{}-{}-{}-{}'.format(args.env, args.model, args.hidden_dim, args.num_layers, args.T, args.lr)
+    # wandb.init(name=name, project="finance", entity="liuyuezhang", config=args)
+
+    # dim
+    dims = {'single': 6, 'pair': 4}
+    dim = dims[args.env]
+
+    # model
+    model = VanillaLSTM(input_dim=dim, hidden_dim=args.hidden_dim,
+                        output_dim=dim, num_layers=args.num_layers).to("cuda")
+    model.load_state_dict(torch.load('./wandb/run-20201122_173941-2gh7p7p0/files/model.pt'))
+
+    # test
+    test_dataset = Dataset(dir=args.dir + args.env + '/test.pkl', T=args.T)
+    scale = np.array(pd.read_pickle(args.dir + args.env + '/test_max.pkl'))
+    test_loader = torch.utils.data.DataLoader(test_dataset)
+    model.eval()
+    test(model, test_loader, scale)
 
 
 if __name__ == '__main__':

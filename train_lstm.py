@@ -86,17 +86,17 @@ def main():
             # log
             wandb.log({"loss": loss.item()})
 
-        if (e % args.save_epochs) == 9:
-            # save
-            print("model saved.")
-            torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
+        # if (e % args.save_epochs) == 9:
+        # save
+        print("model saved.")
+        torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
 
-            # test
-            test_dataset = Dataset(dir=args.dir + args.env + '/test.pkl', T=args.T)
-            scale = np.array(pd.read_pickle(args.dir + args.env + '/test_max.pkl'))
-            test_loader = torch.utils.data.DataLoader(test_dataset, shuffle=True)
-            model.eval()
-            test(model, test_loader, scale)
+        # test
+        test_dataset = Dataset(dir=args.dir + args.env + '/test.pkl', T=args.T)
+        scale = np.array(pd.read_pickle(args.dir + args.env + '/test_max.pkl'))
+        test_loader = torch.utils.data.DataLoader(test_dataset)
+        model.eval()
+        test(model, test_loader, scale)
 
 
 if __name__ == '__main__':

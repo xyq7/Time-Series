@@ -3,7 +3,7 @@ import argparse
 
 def get_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', default='pair', choices=('single', 'pair', 'macro'))
+    parser.add_argument('--env', default='single', choices=('single', 'pair', 'macro'))
     parser.add_argument('--model', default='lstm', choices=('arima', 'lstm'))
 
     parser.add_argument('--num_layers', default=2, type=int)

@@ -109,6 +109,7 @@ mmdet/version.py
 .DS_Store
 
 # custom
+wandb/
 res/
 *.pkl.json
 *.log.json
