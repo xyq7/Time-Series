@@ -72,5 +72,5 @@ print("\nDone_industry!\n")
 test_preds = np.transpose(np.vstack((rst_open*scale[0], rst_close*scale[1], rst_high*scale[2], rst_low*scale[3], rst_volume*scale[4], rst_industry*scale[5], rst_close*scale[6])))
 test_ori = np.transpose(np.vstack((test_m0*scale[0], test_m1*scale[1], test_m2*scale[2], test_consumer*scale[3], test_economics*scale[4], rst_industry*scale[5], test_close*scale[6])))
 
-np.savez('./arima_task1.npz', test_preds=rst_close*scale[1], test_ori=test_close*scale[1])
+np.savez('./arima_task1.npz', test_preds=test_preds, test_ori=test_ori)
 
